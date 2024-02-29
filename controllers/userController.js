@@ -99,10 +99,33 @@ insertUser = (req, res) => {
     dbConfig.sqlConnect(sql, sqlArr, callBack)
 }
 
+// 获取菜单
+getMenus = (req, res) => {
+    const { userID } = req.query
+    // 创建一个用于获取当前页数据的SQL查询  
+    let sql = `SELECT m.*  
+    FROM sys_user_role ur  
+    JOIN sys_role r ON ur.roleID = r.roleID  
+    JOIN sys_role_menu rm ON r.roleID = rm.roleID  
+    JOIN sys_menu m ON rm.menuID = m.menuID  
+    WHERE ur.userID = ? ORDER BY m.menuID;`;
+    const sqlArr = [userID]
+    // 执行当前页数据查询  
+    dbConfig.sqlConnect(sql, sqlArr, (err, data) => {
+        if (err) {
+            console.log('连接出错了');
+            res.status(500).send({ error: '查询出错了' });
+        } else {
+            // 将总数和当前页数据一起返回  
+            res.send({ data });
+        }
+    });
+}
 
 module.exports = {
     getUsers,
     login,
     insertUser,
-    allUsername
+    allUsername,
+    getMenus
 }

@@ -3,7 +3,17 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 const cors = require('cors')
 const jwt = require('jsonwebtoken');
-const { userRouter, carRouter, employeeRouter, departmentRouter } = require('./routes/index');
+const { userRouter,
+  carRouter,
+  employeeRouter,
+  departmentRouter,
+  noticeRouter,
+  roleRouter,
+  maintainRouter,
+  customerRouter,
+  orderRouter,
+  reserveRouter,
+  payRouter, } = require('./routes/index');
 
 var app = express();
 
@@ -27,6 +37,13 @@ app.use('/car', carRouter);
 app.use('/user', userRouter);
 app.use('/employee', employeeRouter);
 app.use('/department', departmentRouter);
+app.use('/notice', noticeRouter);
+app.use('/role', roleRouter);
+app.use('/maintain', maintainRouter);
+app.use('/customer', customerRouter);
+app.use('/order', orderRouter);
+app.use('/reserve', reserveRouter);
+app.use('/pay', payRouter);
 
 
 

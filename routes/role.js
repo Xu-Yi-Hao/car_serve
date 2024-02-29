@@ -5,4 +5,4 @@ const { } = require('../controllers/roleController')
 /* GET roles listing. */
 
 
-module.exports = user;
+module.exports = role;
