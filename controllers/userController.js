@@ -101,7 +101,7 @@ insertUser = (req, res) => {
 
 // 获取菜单
 getMenus = (req, res) => {
-    const { userID } = req.query
+    const { id } = req.query
     // 创建一个用于获取当前页数据的SQL查询  
     let sql = `SELECT m.*  
     FROM sys_user_role ur  
@@ -109,7 +109,7 @@ getMenus = (req, res) => {
     JOIN sys_role_menu rm ON r.roleID = rm.roleID  
     JOIN sys_menu m ON rm.menuID = m.menuID  
     WHERE ur.userID = ? ORDER BY m.menuID;`;
-    const sqlArr = [userID]
+    const sqlArr = [id]
     // 执行当前页数据查询  
     dbConfig.sqlConnect(sql, sqlArr, (err, data) => {
         if (err) {
@@ -122,10 +122,46 @@ getMenus = (req, res) => {
     });
 }
 
+// 获取指定用户信息
+getUserByID = (req, res) => {
+    const { userID } = req.query
+    let sql = `select * from sye_user where userID=?`
+    let sqlArr = [userID]
+    let callBack = (err, data) => {
+        if (err) {
+            console.log(err);
+            console.log('连接出错了');
+        } else {
+            res.send({ data })
+        }
+    }
+    dbConfig.sqlConnect(sql, sqlArr, callBack)
+}
+
+getUserByUsername = (req, res) => {
+    console.log(req.query);
+    const { username } = req.query
+    let sql = `select * FROM sye_user where username like '%${username}%'`
+    let sqlArr = []
+    let callBack = (err, data) => {
+        if (err) {
+            console.log(err);
+            console.log('连接出错了');
+        } else {
+            res.send({ data })
+        }
+    }
+    dbConfig.sqlConnect(sql, sqlArr, callBack)
+}
+
+
+
 module.exports = {
     getUsers,
     login,
     insertUser,
     allUsername,
-    getMenus
+    getMenus,
+    getUserByID,
+    getUserByUsername
 }

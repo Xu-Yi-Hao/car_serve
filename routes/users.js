@@ -1,12 +1,15 @@
 var express = require('express');
 var user = express.Router();
-const { getUsers, login, allUsername, insertUser, getMenus } = require('../controllers/userController')
+const { getUsers, login, allUsername, insertUser, getMenus, getUserByID, getUserByUsername } = require('../controllers/userController')
 
 /* GET users listing. */
 user.get('/', (req, res) => {
-    if (req.query.userID) {
+    if (req.query.id) {
         getMenus(req, res)
-    } else {
+    } else if (req.query.userID) {
+        getUserByID(req, res)
+    }
+    else {
         getUsers(req, res)
     }
 })
