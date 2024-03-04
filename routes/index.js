@@ -7,7 +7,7 @@ const roleRouter = require('./role')
 const maintainRouter = require('./maintain')
 const customerRouter = require('./customer')
 const orderRouter = require('./order')
-const reserveRouter = require('./reserve')
+const returnRouter = require('./return')
 const payRouter = require('./pay')
 
 
@@ -21,6 +21,6 @@ module.exports = {
     maintainRouter,
     customerRouter,
     orderRouter,
-    reserveRouter,
+    returnRouter,
     payRouter,
 }

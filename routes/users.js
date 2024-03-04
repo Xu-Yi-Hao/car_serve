@@ -1,22 +1,24 @@
 var express = require('express');
 var user = express.Router();
-const { getUsers, login, allUsername, insertUser, getMenus, getUserByID, getUserByUsername } = require('../controllers/userController')
+const { getUsers, login, insertUser, getMenus, getUserByID,  selectRoleForUser, updateUser, updatePwd, deleteUser, getRoleOfUser } = require('../controllers/userController')
 
 /* GET users listing. */
 user.get('/', (req, res) => {
-    if (req.query.id) {
-        getMenus(req, res)
-    } else if (req.query.userID) {
+    if (req.query.userID) {
         getUserByID(req, res)
-    }
-    else {
+    } else {
         getUsers(req, res)
     }
-})
-// user.get('/', getUsers);
-user.get('/username', allUsername);
+});
+
+
+user.get('/roles', getRoleOfUser)
+user.get('/menu', getMenus)
 user.post('/login', login);
+user.put('/:userID', updateUser);
+user.put('/pwd/:userID', updatePwd);
+user.delete('/:userID', deleteUser)
 user.post('/', insertUser)
-// user.get('/:userID', getMenus)
+user.post('/selectRole', selectRoleForUser)
 
 module.exports = user;

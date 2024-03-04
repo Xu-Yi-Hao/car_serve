@@ -2,38 +2,72 @@ const dbConfig = require('../util/deConfig')
 
 // 获取角色信息(分页)
 getRoles = (req, res) => {
+    console.log(req.query);
     const page = parseInt(req.query.page, 10) || 1; // 获取页码，默认为1  
     const limit = parseInt(req.query.limit, 10) || 5; // 获取每页数量，默认为5  
     // 计算偏移量，这里假设页码从1开始  
     const offset = (page - 1) * limit;
 
-    // 创建一个用于计算总数的SQL查询  
-    let totalSql = "SELECT COUNT(*) as total FROM sys_role";
+    if (req.query.roleName) {
+        const { roleName } = req.query
+        // 创建一个用于计算总数的SQL查询  
+        let totalSql = `SELECT COUNT(*) as total FROM sys_role where roleName like '%${roleName}%'`;
 
-    // 执行总数查询  
-    dbConfig.sqlConnect(totalSql, [], (err, totalData) => {
-        if (err) {
-            console.log('连接出错了');
-            res.status(500).send({ error: '查询出错了' });
-            return;
-        }
-
-        const total = totalData[0].total; // 获取总数  
-
-        // 创建一个用于获取当前页数据的SQL查询  
-        let sql = `SELECT * FROM sys_role ORDER BY roleID LIMIT ${limit} OFFSET ${offset}`;
-
-        // 执行当前页数据查询  
-        dbConfig.sqlConnect(sql, [], (err, data) => {
+        // 执行总数查询  
+        dbConfig.sqlConnect(totalSql, [], (err, totalData) => {
             if (err) {
                 console.log('连接出错了');
                 res.status(500).send({ error: '查询出错了' });
-            } else {
-                // 将总数和当前页数据一起返回  
-                res.send({ total, data });
+                return;
             }
+
+            const total = totalData[0].total; // 获取总数  
+
+            // 创建一个用于获取当前页数据的SQL查询  
+            let sql = `SELECT * FROM sys_role where roleName like '%${roleName}%' ORDER BY roleID LIMIT ${limit} OFFSET ${offset}`;
+
+            // 执行当前页数据查询  
+            dbConfig.sqlConnect(sql, [], (err, data) => {
+                if (err) {
+                    console.log('连接出错了');
+                    res.status(500).send({ error: '查询出错了' });
+                } else {
+                    // 将总数和当前页数据一起返回  
+                    res.send({ total, data });
+                }
+            });
         });
-    });
+
+    } else {
+        // 创建一个用于计算总数的SQL查询  
+        let totalSql = "SELECT COUNT(*) as total FROM sys_role";
+
+        // 执行总数查询  
+        dbConfig.sqlConnect(totalSql, [], (err, totalData) => {
+            if (err) {
+                console.log('连接出错了');
+                res.status(500).send({ error: '查询出错了' });
+                return;
+            }
+
+            const total = totalData[0].total; // 获取总数  
+
+            // 创建一个用于获取当前页数据的SQL查询  
+            let sql = `SELECT * FROM sys_role ORDER BY roleID LIMIT ${limit} OFFSET ${offset}`;
+
+            // 执行当前页数据查询  
+            dbConfig.sqlConnect(sql, [], (err, data) => {
+                if (err) {
+                    console.log('连接出错了');
+                    res.status(500).send({ error: '查询出错了' });
+                } else {
+                    // 将总数和当前页数据一起返回  
+                    res.send({ total, data });
+                }
+            });
+        });
+    }
+
 }
 
 // 获取指定角色信息
@@ -51,22 +85,6 @@ getRoleByID = (req, res) => {
     }
     dbConfig.sqlConnect(sql, sqlArr, callBack)
 }
-getRoleByName = (req, res) => {
-    console.log(req.query);
-    const { roleName } = req.query
-    let sql = `select * FROM sys_role where roleName like '%${roleName}%'`
-    let sqlArr = []
-    let callBack = (err, data) => {
-        if (err) {
-            console.log(err);
-            console.log('连接出错了');
-        } else {
-            res.send({ data })
-        }
-    }
-    dbConfig.sqlConnect(sql, sqlArr, callBack)
-}
-
 
 // 新增角色信息
 insertRole = (req, res) => {
@@ -133,5 +151,4 @@ module.exports = {
     insertRole,
     updateRole,
     deleteRole,
-    getRoleByName
 }

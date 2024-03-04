@@ -2,38 +2,72 @@ const dbConfig = require('../util/deConfig')
 
 // 获取员工信息(分页，关键词搜索)
 getEmployees = (req, res) => {
+    console.log(req.query);
     const page = parseInt(req.query.page, 10) || 1; // 获取页码，默认为1  
     const limit = parseInt(req.query.limit, 10) || 5; // 获取每页数量，默认为5  
     // 计算偏移量，这里假设页码从1开始  
     const offset = (page - 1) * limit;
+    if (req.query.employeeName) {
+        const employeeName = req.query.employeeName
+        console.log(employeeName);
+        // 创建一个用于计算总数的SQL查询  
+        let totalSql = `SELECT COUNT(*) as total FROM per_employee where employeeName like '%${employeeName}%'`;
 
-    // 创建一个用于计算总数的SQL查询  
-    let totalSql = "SELECT COUNT(*) as total FROM per_employee";
-
-    // 执行总数查询  
-    dbConfig.sqlConnect(totalSql, [], (err, totalData) => {
-        if (err) {
-            console.log('连接出错了');
-            res.status(500).send({ error: '查询出错了' });
-            return;
-        }
-
-        const total = totalData[0].total; // 获取总数  
-
-        // 创建一个用于获取当前页数据的SQL查询  
-        let sql = `SELECT e.*,d.departmentName FROM per_employee e JOIN per_department d ON e.departmentID = d.DepartmentID ORDER BY departmentID LIMIT ${limit} OFFSET ${offset}`;
-
-        // 执行当前页数据查询  
-        dbConfig.sqlConnect(sql, [], (err, data) => {
+        // 执行总数查询  
+        dbConfig.sqlConnect(totalSql, [], (err, totalData) => {
+            console.log(totalSql);
             if (err) {
                 console.log('连接出错了');
                 res.status(500).send({ error: '查询出错了' });
-            } else {
-                // 将总数和当前页数据一起返回  
-                res.send({ total, data });
+                return;
             }
+
+            const total = totalData[0].total; // 获取总数  
+            console.log(total);
+
+            // 创建一个用于获取当前页数据的SQL查询  
+            let sql = `select e.*,d.departmentName FROM per_employee e JOIN per_department d ON e.departmentID = d.DepartmentID where employeeName like '%${employeeName}%' ORDER BY departmentID LIMIT ${limit} OFFSET ${offset}`;
+
+            // 执行当前页数据查询  
+            dbConfig.sqlConnect(sql, [], (err, data) => {
+                if (err) {
+                    console.log('连接出错了');
+                    res.status(500).send({ error: '查询出错了' });
+                } else {
+                    // 将总数和当前页数据一起返回  
+                    res.send({ total, data });
+                }
+            });
         });
-    });
+    } else {
+        // 创建一个用于计算总数的SQL查询  
+        let totalSql = "SELECT COUNT(*) as total FROM per_employee";
+
+        // 执行总数查询  
+        dbConfig.sqlConnect(totalSql, [], (err, totalData) => {
+            if (err) {
+                console.log('连接出错了');
+                res.status(500).send({ error: '查询出错了' });
+                return;
+            }
+
+            const total = totalData[0].total; // 获取总数  
+
+            // 创建一个用于获取当前页数据的SQL查询  
+            let sql = `SELECT e.*,d.departmentName FROM per_employee e JOIN per_department d ON e.departmentID = d.DepartmentID ORDER BY departmentID LIMIT ${limit} OFFSET ${offset}`;
+
+            // 执行当前页数据查询  
+            dbConfig.sqlConnect(sql, [], (err, data) => {
+                if (err) {
+                    console.log('连接出错了');
+                    res.status(500).send({ error: '查询出错了' });
+                } else {
+                    // 将总数和当前页数据一起返回  
+                    res.send({ total, data });
+                }
+            });
+        });
+    }
 }
 
 // 获取所有职位信息
@@ -67,21 +101,6 @@ getEmployeeByID = (req, res) => {
     dbConfig.sqlConnect(sql, sqlArr, callBack)
 }
 
-getEmployeeByName = (req, res) => {
-    console.log(req.query);
-    const { employeeName } = req.query
-    let sql = `select e.*,d.departmentName FROM per_employee e JOIN per_department d ON e.departmentID = d.DepartmentID where employeeName like '%${employeeName}%'`
-    let sqlArr = []
-    let callBack = (err, data) => {
-        if (err) {
-            console.log(err);
-            console.log('连接出错了');
-        } else {
-            res.send({ data })
-        }
-    }
-    dbConfig.sqlConnect(sql, sqlArr, callBack)
-}
 
 // 新增员工信息
 insertEmployee = (req, res) => {
@@ -152,7 +171,6 @@ module.exports = {
     getEmployees,
     getPositions,
     getEmployeeByID,
-    getEmployeeByName,
     insertEmployee,
     updateEmployee,
     deleteEmployee

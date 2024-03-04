@@ -7,49 +7,66 @@ getDepartments = (req, res) => {
     // 计算偏移量，这里假设页码从1开始  
     const offset = (page - 1) * limit;
 
-    // 创建一个用于计算总数的SQL查询  
-    let totalSql = "SELECT COUNT(*) as total FROM per_department";
+    if (req.query.departmentName) {
+        const departmentName = req.query.departmentName
+        // 创建一个用于计算总数的SQL查询  
+        let totalSql = `SELECT COUNT(*) as total FROM per_department where departmentName like '%${departmentName}%'`;
 
-    // 执行总数查询  
-    dbConfig.sqlConnect(totalSql, [], (err, totalData) => {
-        if (err) {
-            console.log('连接出错了');
-            res.status(500).send({ error: '查询出错了' });
-            return;
-        }
-
-        const total = totalData[0].total; // 获取总数  
-
-        // 创建一个用于获取当前页数据的SQL查询  
-        let sql = `SELECT * FROM per_department ORDER BY departmentID LIMIT ${limit} OFFSET ${offset}`;
-
-        // 执行当前页数据查询  
-        dbConfig.sqlConnect(sql, [], (err, data) => {
+        // 执行总数查询  
+        dbConfig.sqlConnect(totalSql, [], (err, totalData) => {
             if (err) {
                 console.log('连接出错了');
                 res.status(500).send({ error: '查询出错了' });
-            } else {
-                // 将总数和当前页数据一起返回  
-                res.send({ total, data });
+                return;
             }
-        });
-    });
-}
 
-// 获取指定部门信息
-getDepartmentByName = (req, res) => {
-    const { departmentName } = req.query
-    let sql = `select * from per_department where departmentName like '%${departmentName}%'`
-    let sqlArr = []
-    let callBack = (err, data) => {
-        if (err) {
-            console.log(err);
-            console.log('连接出错了');
-        } else {
-            res.send({ data })
-        }
+            const total = totalData[0].total; // 获取总数  
+
+            // 创建一个用于获取当前页数据的SQL查询  
+            let sql = `SELECT * FROM per_department where departmentName like '%${departmentName}%' ORDER BY departmentID LIMIT ${limit} OFFSET ${offset}`;
+
+            // 执行当前页数据查询  
+            dbConfig.sqlConnect(sql, [], (err, data) => {
+                if (err) {
+                    console.log('连接出错了');
+                    res.status(500).send({ error: '查询出错了' });
+                } else {
+                    // 将总数和当前页数据一起返回  
+                    res.send({ total, data });
+                }
+            });
+        });
+
+    } else {
+        // 创建一个用于计算总数的SQL查询  
+        let totalSql = "SELECT COUNT(*) as total FROM per_department";
+
+        // 执行总数查询  
+        dbConfig.sqlConnect(totalSql, [], (err, totalData) => {
+            if (err) {
+                console.log('连接出错了');
+                res.status(500).send({ error: '查询出错了' });
+                return;
+            }
+
+            const total = totalData[0].total; // 获取总数  
+
+            // 创建一个用于获取当前页数据的SQL查询  
+            let sql = `SELECT * FROM per_department ORDER BY departmentID LIMIT ${limit} OFFSET ${offset}`;
+
+            // 执行当前页数据查询  
+            dbConfig.sqlConnect(sql, [], (err, data) => {
+                if (err) {
+                    console.log('连接出错了');
+                    res.status(500).send({ error: '查询出错了' });
+                } else {
+                    // 将总数和当前页数据一起返回  
+                    res.send({ total, data });
+                }
+            });
+        });
     }
-    dbConfig.sqlConnect(sql, sqlArr, callBack)
+
 }
 
 // 新增部门信息
@@ -113,7 +130,6 @@ deleteDep = (req, res) => {
 
 module.exports = {
     getDepartments,
-    getDepartmentByName,
     insertDep,
     updateDep,
     deleteDep,
