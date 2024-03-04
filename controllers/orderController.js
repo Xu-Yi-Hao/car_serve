@@ -91,26 +91,6 @@ getOrderByID = (req, res) => {
     dbConfig.sqlConnect(sql, sqlArr, callBack)
 }
 
-// 搜索信息
-getOrderByName = (req, res) => {
-    const { name } = req.query
-    let sql = `SELECT re.*, car.plateNumber, c.name, c.contactNumber   
-    FROM rental_orders re   
-    JOIN car ON re.carID = car.carID   
-    JOIN customer c ON re.customerID = c.customerID   
-   ;`
-    let sqlArr = [name]
-    let callBack = (err, data) => {
-        if (err) {
-            console.log(err);
-            console.log('连接出错了');
-        } else {
-            res.send({ data })
-        }
-    }
-    dbConfig.sqlConnect(sql, sqlArr, callBack)
-}
-
 // 新增订单信息
 insertOrder = (req, res) => {
     let { customerID, carID, orderStatus, rentalDate, returnDate } = req.body
@@ -205,7 +185,6 @@ getCarList = (req, res) => {
 module.exports = {
     getOrders,
     getOrderByID,
-    getOrderByName,
     insertOrder,
     updateOrder,
     deleteOrder,

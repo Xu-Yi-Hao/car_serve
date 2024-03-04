@@ -70,21 +70,6 @@ getRoles = (req, res) => {
 
 }
 
-// 获取指定角色信息
-getRoleByID = (req, res) => {
-    const { roleID } = req.query
-    let sql = `select * from sys_role where roleID = ?`
-    let sqlArr = [roleID]
-    let callBack = (err, data) => {
-        if (err) {
-            console.log(err);
-            console.log('连接出错了');
-        } else {
-            res.send({ data })
-        }
-    }
-    dbConfig.sqlConnect(sql, sqlArr, callBack)
-}
 
 // 新增角色信息
 insertRole = (req, res) => {
@@ -147,7 +132,6 @@ deleteRole = (req, res) => {
 
 module.exports = {
     getRoles,
-    getRoleByID,
     insertRole,
     updateRole,
     deleteRole,

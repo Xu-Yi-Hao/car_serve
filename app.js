@@ -12,7 +12,7 @@ const { userRouter,
   maintainRouter,
   customerRouter,
   orderRouter,
-  returnRouter,
+  upholdRouter,
   payRouter, } = require('./routes/index');
 
 var app = express();
@@ -39,10 +39,9 @@ app.use('/employee', employeeRouter);
 app.use('/department', departmentRouter);
 app.use('/notice', noticeRouter);
 app.use('/role', roleRouter);
-app.use('/maintain', maintainRouter);
 app.use('/customer', customerRouter);
 app.use('/order', orderRouter);
-app.use('/return', returnRouter);
+app.use('/uphold', upholdRouter);
 app.use('/pay', payRouter);
 
 

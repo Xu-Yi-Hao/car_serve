@@ -1,17 +1,17 @@
 const dbConfig = require('../util/deConfig')
 
-// 获取支付信息(分页)
-getPays = (req, res) => {
+// 获取维护信息(分页)
+getUpholds = (req, res) => {
     console.log(req.query);
     const page = parseInt(req.query.page, 10) || 1; // 获取页码，默认为1  
     const limit = parseInt(req.query.limit, 10) || 5; // 获取每页数量，默认为5  
     // 计算偏移量，这里假设页码从1开始  
     const offset = (page - 1) * limit;
 
-    if (req.query.orderID) {
-        const { orderID } = req.query
+    if (req.query.plateNumber) {
+        const { plateNumber } = req.query
         // 创建一个用于计算总数的SQL查询  
-        let totalSql = `SELECT COUNT(*) as total FROM pay_records where orderID like '%${orderID}%'`;
+        let totalSql = `SELECT COUNT(*) as total FROM car_uphold cu join car on cu.carID=car.carID where car.plateNumber like '%${plateNumber}%'`;
 
         // 执行总数查询  
         dbConfig.sqlConnect(totalSql, [], (err, totalData) => {
@@ -24,11 +24,12 @@ getPays = (req, res) => {
             const total = totalData[0].total; // 获取总数  
 
             // 创建一个用于获取当前页数据的SQL查询  
-            let sql = `SELECT * FROM pay_records  where orderID like '%${orderID}%' ORDER BY payID LIMIT ${limit} OFFSET ${offset}`;
+            let sql = `SELECT cu.*,car.plateNumber FROM car_uphold cu join car on cu.carID=car.carID where car.plateNumber like '%${plateNumber}%' ORDER BY upholdID LIMIT ${limit} OFFSET ${offset}`;
 
             // 执行当前页数据查询  
             dbConfig.sqlConnect(sql, [], (err, data) => {
                 if (err) {
+                    console.log(err);
                     console.log('连接出错了');
                     res.status(500).send({ error: '查询出错了' });
                 } else {
@@ -40,11 +41,12 @@ getPays = (req, res) => {
 
     } else {
         // 创建一个用于计算总数的SQL查询  
-        let totalSql = "SELECT COUNT(*) as total FROM pay_records";
+        let totalSql = "SELECT COUNT(*) as total FROM car_uphold";
 
         // 执行总数查询  
         dbConfig.sqlConnect(totalSql, [], (err, totalData) => {
             if (err) {
+                console.log(err);
                 console.log('连接出错了');
                 res.status(500).send({ error: '查询出错了' });
                 return;
@@ -53,11 +55,12 @@ getPays = (req, res) => {
             const total = totalData[0].total; // 获取总数  
 
             // 创建一个用于获取当前页数据的SQL查询  
-            let sql = `SELECT * FROM pay_records ORDER BY payID LIMIT ${limit} OFFSET ${offset}`;
+            let sql = `SELECT cu.*,car.plateNumber FROM car_uphold cu join car on cu.carID=car.carID ORDER BY UpholdID LIMIT ${limit} OFFSET ${offset}`;
 
             // 执行当前页数据查询  
             dbConfig.sqlConnect(sql, [], (err, data) => {
                 if (err) {
+                    console.log(err);
                     console.log('连接出错了');
                     res.status(500).send({ error: '查询出错了' });
                 } else {
@@ -70,12 +73,12 @@ getPays = (req, res) => {
 
 }
 
-// 新增支付信息
-insertPay = (req, res) => {
+// 新增维护信息
+insertUphold = (req, res) => {
     console.log(req.body);
-    let { orderID, payAmount, payStatus } = req.body
-    let sql = `insert into pay_records (orderID, payAmount, payStatus) values (?, ?, ?)`
-    let sqlArr = [orderID, payAmount, payStatus]
+    let { carID, upholdDate, upholdDetails } = req.body
+    let sql = `insert into car_uphold (carID, upholdDate, upholdDetails) values (?, ?, ?)`
+    let sqlArr = [carID, upholdDate, upholdDetails]
 
     let callBack = (err, data) => {
         if (err) {
@@ -91,13 +94,13 @@ insertPay = (req, res) => {
     dbConfig.sqlConnect(sql, sqlArr, callBack)
 }
 
-// 更新支付信息
-updatePay = (req, res) => {
-    let { payID } = req.params
-    let { orderID, payAmount, payStatus } = req.body;
+// 更新维护信息
+updateUphold = (req, res) => {
+    let { upholdID } = req.params
+    let { carID, upholdDate, upholdDetails } = req.body;
 
-    let sql = `update pay_records set orderID=?, payAmount=?, payStatus=?  where payID=?`
-    let sqlArr = [orderID, payAmount, payStatus, payID]
+    let sql = `update car_uphold set carID=?, upholdDate=?, upholdDetails=? where upholdID=?`
+    let sqlArr = [carID, upholdDate, upholdDetails, upholdID]
 
     let callBack = (err, data) => {
         if (err) {
@@ -112,11 +115,11 @@ updatePay = (req, res) => {
     dbConfig.sqlConnect(sql, sqlArr, callBack)
 }
 
-// 删除指定支付
-deletePay = (req, res) => {
-    let { payID } = req.params;
-    let sql = `DELETE FROM pay_records WHERE payID=?`
-    let sqlArr = [payID]
+// 删除指定维护
+deleteUphold = (req, res) => {
+    let { upholdID } = req.params;
+    let sql = `DELETE FROM car_uphold WHERE upholdID=?`
+    let sqlArr = [upholdID]
     let callBack = (err, data) => {
         if (err) {
             res.status(500).send({ error: '删除失败' });
@@ -128,45 +131,10 @@ deletePay = (req, res) => {
     dbConfig.sqlConnect(sql, sqlArr, callBack)
 }
 
-// 获取指定支付信息
-getPayInfoByID = (req, res) => {
-    console.log(req.query);
-    const { payID } = req.query
-    console.log(payID);
-    let sql = `select * from pay_records where payID=?`
-    let sqlArr = [payID]
-    let callBack = (err, data) => {
-        if (err) {
-            console.log(err);
-            console.log('连接出错了');
-        } else {
-            res.send({ data })
-        }
-    }
-    dbConfig.sqlConnect(sql, sqlArr, callBack)
-}
-
-// 获取所有订单ID
-getPayByID = (req, res) => {
-    let sql = `select orderID from rental_orders order by orderID `
-    let sqlArr = []
-    let callBack = (err, data) => {
-        if (err) {
-            console.log(err);
-            console.log('连接出错了');
-        } else {
-            res.send({ data })
-        }
-    }
-    dbConfig.sqlConnect(sql, sqlArr, callBack)
-}
-
 
 module.exports = {
-    getPays,
-    insertPay,
-    getPayInfoByID,
-    updatePay,
-    deletePay,
-    getPayByID
+    getUpholds,
+    insertUphold,
+    updateUphold,
+    deleteUphold,
 }
