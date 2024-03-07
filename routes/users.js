@@ -1,6 +1,6 @@
 var express = require('express');
 var user = express.Router();
-const { getUsers, login, insertUser, getMenus, getUserByID,  selectRoleForUser, updateUser, updatePwd, deleteUser, getRoleOfUser } = require('../controllers/userController')
+const { getUsers, login, insertUser, getMenus, getUserByID, selectRoleForUser, updateUser, updatePwd, deleteUser, getRoleOfUser, getAllNumber } = require('../controllers/userController')
 
 /* GET users listing. */
 user.get('/', (req, res) => {
@@ -11,7 +11,7 @@ user.get('/', (req, res) => {
     }
 });
 
-
+user.get('/number', getAllNumber)
 user.get('/roles', getRoleOfUser)
 user.get('/menu', getMenus)
 user.post('/login', login);

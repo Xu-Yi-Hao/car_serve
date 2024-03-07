@@ -70,7 +70,6 @@ getRoles = (req, res) => {
 
 }
 
-
 // 新增角色信息
 insertRole = (req, res) => {
     console.log(req.body);
@@ -116,17 +115,56 @@ updateRole = (req, res) => {
 // 删除指定角色
 deleteRole = (req, res) => {
     let { roleID } = req.params;
-    let sql = `DELETE FROM sys_role WHERE roleID=?`
-    let sqlArr = [roleID]
+    // 准备SQL语句模板  
+    let sql1 = `DELETE FROM sys_user_role WHERE roleID = ${roleID}`;
+    let sql2 = `DELETE FROM sys_role_menu WHERE roleID = ${roleID}`;
+    let sql3 = `DELETE FROM sys_role WHERE roleID = ${roleID}`;
+
+    // 执行删除操作  
+    dbConfig.sqlConnect(sql1, [], (err, result) => {
+        if (err) {
+            console.log(err);
+            console.log('删除失败');
+            res.status(500).send({ error: '删除失败' });
+            return;
+        }
+        console.log('删除成功', result);
+
+        // 执行插入操作  
+        dbConfig.sqlConnect(sql2, [], (err, result) => {
+            if (err) {
+                console.log(err);
+                console.log('删除失败');
+                res.status(500).send({ error: '删除失败' });
+                return
+            }
+            dbConfig.sqlConnect(sql3, [], (err, result) => {
+                if (err) {
+                    console.log(err);
+                    console.log('删除失败');
+                    res.status(500).send({ error: '删除失败' });
+                    return
+                } else {
+                    console.log('删除成功:', result);
+                    res.send({ message: '删除成功' });
+                }
+            });
+        });
+    });
+}
+
+getAllRole = (req, res) => {
+    let sql = `SELECT * FROM sys_role`
     let callBack = (err, data) => {
         if (err) {
-            res.status(500).send({ error: '删除失败' });
+            console.log(err);
+            console.log('查询出错了');
+            res.status(500).send({ error: '查询失败' });
         } else {
-            res.send({ message: '删除成功' });
+            res.send({ data });
         }
     }
-
-    dbConfig.sqlConnect(sql, sqlArr, callBack)
+    dbConfig.sqlConnect(sql, [], callBack)
 }
 
 
@@ -135,4 +173,5 @@ module.exports = {
     insertRole,
     updateRole,
     deleteRole,
+    getAllRole
 }

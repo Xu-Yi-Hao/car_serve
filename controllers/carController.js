@@ -168,9 +168,9 @@ getCars = (req, res) => {
 // 新增汽车信息
 insertCar = (req, res) => {
     console.log(req.body);
-    let { plateNumber, brand, model, type, color, year, price, mileage, isRent, notes } = req.body
-    let sql = `insert into car (plateNumber, brand, model, type,color, year,  price, mileage, isRent, notes) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    let sqlArr = [plateNumber, brand, model, type, color, year, price, mileage, isRent, notes]
+    let { plateNumber, brand, model, type, color, year, deposit, price, mileage, isRent, notes } = req.body
+    let sql = `insert into car (plateNumber, brand, model, type,color, year, deposit, price, mileage, isRent, notes) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    let sqlArr = [plateNumber, brand, model, type, deposit, color, year, price, mileage, isRent, notes]
 
     let callBack = (err, data) => {
         if (err) {
@@ -189,10 +189,10 @@ insertCar = (req, res) => {
 // 更新汽车信息
 updateCar = (req, res) => {
     let { carID } = req.params
-    let { plateNumber, brand, model, type, color, year, price, mileage, isRent, notes } = req.body;
+    let { plateNumber, brand, model, type, color, year, deposit, price, mileage, isRent, notes } = req.body;
 
-    let sql = `update car set plateNumber=?, brand=?, model=?, type=?, color=?, year=?,  price=?, mileage=?, isRent=?, notes=? where carID=?`
-    let sqlArr = [plateNumber, brand, model, type, color, year, price, mileage, isRent, notes, carID]
+    let sql = `update car set plateNumber=?, brand=?, model=?, type=?, color=?, deposit=?, year=?,  price=?, mileage=?, isRent=?, notes=? where carID=?`
+    let sqlArr = [plateNumber, brand, model, type, color, deposit, year, price, mileage, isRent, notes, carID]
 
     let callBack = (err, data) => {
         if (err) {
@@ -228,6 +228,21 @@ deleteCar = (req, res) => {
     dbConfig.sqlConnect(sql, sqlArr, callBack)
 }
 
+// // 获取指定id的汽车信息
+getTypeTotal = (req, res) => {
+    const { } = req.query
+    let sql = `SELECT type,COUNT(type) AS total_types FROM car GROUP BY type;`
+    let sqlArr = []
+    let callBack = (err, data) => {
+        if (err) {
+            console.log('连接出错了');
+        } else {
+            res.send({ data })
+        }
+    }
+    dbConfig.sqlConnect(sql, sqlArr, callBack)
+}
+
 module.exports = {
     getCars,
     getCarBrand,
@@ -239,6 +254,7 @@ module.exports = {
     insertCar,
     updateCar,
     deleteCar,
+    getTypeTotal
 }
 
 /**

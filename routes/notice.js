@@ -4,7 +4,7 @@ const { getNotices,
     getNoticeByID,
     insertNotice,
     updateNotice,
-    deleteNotice, } = require('../controllers/noticeController')
+    deleteNotice, getAllNotice } = require('../controllers/noticeController')
 
 /* GET notices listing. */
 notice.get('/', (req, res) => {
@@ -14,6 +14,8 @@ notice.get('/', (req, res) => {
         getNotices(req, res)
     }
 });
+
+notice.get('/all',getAllNotice)
 
 notice.post('/', insertNotice);
 notice.put('/:noticeID', updateNotice);

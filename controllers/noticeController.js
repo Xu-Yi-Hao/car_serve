@@ -110,6 +110,21 @@ deleteNotice = (req, res) => {
     dbConfig.sqlConnect(sql, sqlArr, callBack)
 }
 
+// 获取所有公告
+getAllNotice = (req, res) => {
+    let sql = `select * from sys_notices`
+    let sqlArr = []
+    let callBack = (err, data) => {
+        if (err) {
+            console.log(err);
+            console.log('连接出错了');
+        } else {
+            res.send({ data })
+        }
+    }
+    dbConfig.sqlConnect(sql, sqlArr, callBack)
+}
+
 
 module.exports = {
     getNotices,
@@ -117,4 +132,5 @@ module.exports = {
     insertNotice,
     updateNotice,
     deleteNotice,
+    getAllNotice
 }

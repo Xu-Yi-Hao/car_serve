@@ -3,7 +3,7 @@ var pay = express.Router();
 const { getPays,
     insertPay,
     updatePay,
-    deletePay, getPayByID, getPayInfoByID } = require('../controllers/payController')
+    deletePay, getPayByID, getPayInfoByID, getPaysOfCustomer } = require('../controllers/payController')
 
 /* GET pays listing. */
 pay.get('/', (req, res) => {
@@ -16,6 +16,7 @@ pay.get('/', (req, res) => {
     }
 });
 
+pay.get('/customer', getPaysOfCustomer)
 pay.get('/orderID', getPayByID)
 pay.post('/', insertPay);
 pay.put('/:payID', updatePay);

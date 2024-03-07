@@ -16,6 +16,7 @@ car.get('/brand', getCarBrand);
 car.get('/isRent', getCarIsRent);
 car.get('/type', getCarType);
 car.get('/color', getCarColor);
+car.get('/type/total', getTypeTotal);
 
 car.post('', insertCar);
 car.put('/:carID', updateCar);

@@ -1,4 +1,3 @@
-const { query } = require('express');
 const dbConfig = require('../util/deConfig')
 const jwt = require('jsonwebtoken')
 // 设置JWT密钥  
@@ -13,7 +12,7 @@ getUsers = (req, res) => {
     if (req.query.username) {
         const username = req.query.username
         // 创建一个用于计算总数的SQL查询  
-        let totalSql = `SELECT COUNT(*) as total FROM sys_user  where username like '%${username}%'`;
+        let totalSql = `SELECT COUNT(*) as total FROM sys_user where username like '%${username}%'`;
 
         // 执行总数查询  
         dbConfig.sqlConnect(totalSql, [], (err, totalData) => {
@@ -26,7 +25,11 @@ getUsers = (req, res) => {
             const total = totalData[0].total; // 获取总数  
 
             // 创建一个用于获取当前页数据的SQL查询  
-            let sql = `SELECT * FROM sys_user  where username like '%${username}%' ORDER BY userID LIMIT ${limit} OFFSET ${offset}`;
+            let sql = `SELECT u.*,r.roleName  
+            FROM sys_user_role ur  
+            JOIN sys_role r ON ur.roleID = r.roleID  
+            JOIN sys_user u ON ur.userID = u.userID  
+            ORDER BY u.userID where u.username like '%${username}%' ORDER BY userID LIMIT ${limit} OFFSET ${offset}`;
 
             // 执行当前页数据查询  
             dbConfig.sqlConnect(sql, [], (err, data) => {
@@ -54,7 +57,11 @@ getUsers = (req, res) => {
             const total = totalData[0].total; // 获取总数  
 
             // 创建一个用于获取当前页数据的SQL查询  
-            let sql = `SELECT * FROM sys_user ORDER BY userID LIMIT ${limit} OFFSET ${offset}`;
+            let sql = `SELECT u.*,r.roleName  
+            FROM sys_user_role ur  
+            JOIN sys_role r ON ur.roleID = r.roleID  
+            JOIN sys_user u ON ur.userID = u.userID  
+            ORDER BY u.userID LIMIT ${limit} OFFSET ${offset}`;
 
             // 执行当前页数据查询  
             dbConfig.sqlConnect(sql, [], (err, data) => {
@@ -117,23 +124,46 @@ updatePwd = (req, res) => {
 
 // 插入用户
 insertUser = (req, res) => {
-    console.log(req.body);
-    let { username, name, gender, contactNumber, avatarUrl, password } = req.body
-    let sql = `insert into sys_user (username, name, gender, contactNumber, avatarUrl, password) values (?, ?, ?, ?, ?, ?)`
-    let sqlArr = [username, name, gender, contactNumber, avatarUrl, password]
+    let { username, name, roleID, gender, contactNumber, avatarUrl, password } = req.body;
+    // 准备SQL语句模板  
+    let sql1 = `insert into sys_user (username, name, gender, contactNumber, avatarUrl, password) values (?, ?, ?, ?, ?, ?)`;
+    let sql2 = `select userID from sys_user where contactNumber=?`
+    let sql3 = `INSERT IGNORE INTO sys_user_role (userID, roleID) VALUES (?,${roleID})`;
 
-    let callBack = (err, data) => {
+    let sqlArr1 = [username, name, gender, contactNumber, avatarUrl, password]
+    // 执行删除操作  
+    dbConfig.sqlConnect(sql1, sqlArr1, (err, result) => {
         if (err) {
             console.log(err);
-            console.log('插入出错了');
-            res.status(500).send({ error: '插入失败' });
-        } else {
-            console.log('注册成功:', data);
-            res.send({ message: '注册成功' });
+            console.log('插入用户分配失败');
+            res.status(500).send({ error: '插入用户分配失败' });
+            return;
         }
-    }
 
-    dbConfig.sqlConnect(sql, sqlArr, callBack)
+        // 执行插入操作  
+        dbConfig.sqlConnect(sql2, [contactNumber], (err, result) => {
+            if (err) {
+                console.log(err);
+                console.log('插入角色失败');
+                res.status(500).send({ error: '插入角色失败' });
+                return
+            }
+            console.log(result);
+            const { userID } = result[0]
+            // 执行插入操作  
+            dbConfig.sqlConnect(sql3, [userID], (err, result) => {
+                if (err) {
+                    console.log(err);
+                    console.log('插入角色失败');
+                    res.status(500).send({ error: '插入角色失败' });
+                } else {
+                    console.log('注册成功:', result);
+                    res.send({ message: '注册成功' });
+                }
+            });
+
+        });
+    });
 }
 
 // 获取菜单
@@ -162,7 +192,18 @@ getMenus = (req, res) => {
 // 获取指定用户信息
 getUserByID = (req, res) => {
     const { userID } = req.query
-    let sql = `select * from sys_user where userID = ?`
+    let sql = `SELECT   
+    u.*,  
+    r.roleID,  
+    r.roleName  
+FROM   
+    sys_user u  
+JOIN   
+    sys_user_role ur ON u.userID = ur.userID  
+JOIN   
+    sys_role r ON ur.roleID = r.roleID  
+WHERE   
+    u.userID = ?;`
     let sqlArr = [userID]
     let callBack = (err, data) => {
         if (err) {
@@ -286,6 +327,22 @@ deleteUser = (req, res) => {
     });
 }
 
+// 查询用户所有电话号码
+getAllNumber = (req, res) => {
+    // 准备SQL语句模板  
+    let sql = `select contactNumber from sys_user`;
+    let sqlArr = []
+    let callBack = (err, data) => {
+        console.log(data);
+        if (err) {
+            console.log(err);
+            console.log('连接出错了');
+        } else {
+            res.send({ data })
+        }
+    }
+    dbConfig.sqlConnect(sql, sqlArr, callBack)
+}
 
 
 module.exports = {
@@ -298,5 +355,6 @@ module.exports = {
     updateUser,
     selectRoleForUser,
     deleteUser,
-    getRoleOfUser
+    getRoleOfUser,
+    getAllNumber
 }
