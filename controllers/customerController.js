@@ -10,7 +10,10 @@ getCustomers = (req, res) => {
     if (req.query.name) {
         const name = req.query.name
         // 创建一个用于计算总数的SQL查询  
-        let totalSql = `SELECT COUNT(*) as total FROM customer where name like '%${name}%'`;
+        let totalSql = `SELECT COUNT(*) as total FROM sys_user su  
+        JOIN sys_user_role sur ON su.userID = sur.userID  
+        JOIN sys_role sr ON sur.roleID = sr.roleID  
+        WHERE sr.roleName = '客户' and name like '%${name}%'`;
 
         // 执行总数查询  
         dbConfig.sqlConnect(totalSql, [], (err, totalData) => {
@@ -23,7 +26,11 @@ getCustomers = (req, res) => {
             const total = totalData[0].total; // 获取总数  
 
             // 创建一个用于获取当前页数据的SQL查询  
-            let sql = `SELECT * FROM customer where name like '%${name}%' ORDER BY customerID LIMIT ${limit} OFFSET ${offset}`;
+            let sql = `SELECT su.*  
+            FROM sys_user su  
+            JOIN sys_user_role sur ON su.userID = sur.userID  
+            JOIN sys_role sr ON sur.roleID = sr.roleID  
+            WHERE sr.roleName = '客户' and name like '%${name}%' ORDER BY customerID LIMIT ${limit} OFFSET ${offset}`;
 
             // 执行当前页数据查询  
             dbConfig.sqlConnect(sql, [], (err, data) => {
@@ -38,7 +45,11 @@ getCustomers = (req, res) => {
         });
     } else {
         // 创建一个用于计算总数的SQL查询  
-        let totalSql = "SELECT COUNT(*) as total FROM customer";
+        let totalSql = `SELECT  COUNT(*) as total  
+        FROM sys_user su  
+        JOIN sys_user_role sur ON su.userID = sur.userID  
+        JOIN sys_role sr ON sur.roleID = sr.roleID  
+        WHERE sr.roleName = '客户';`;
 
         // 执行总数查询  
         dbConfig.sqlConnect(totalSql, [], (err, totalData) => {
@@ -51,11 +62,16 @@ getCustomers = (req, res) => {
             const total = totalData[0].total; // 获取总数  
 
             // 创建一个用于获取当前页数据的SQL查询  
-            let sql = `SELECT * FROM customer ORDER BY customerID LIMIT ${limit} OFFSET ${offset}`;
+            let sql = `SELECT su.*   
+            FROM sys_user su  
+            JOIN sys_user_role sur ON su.userID = sur.userID  
+            JOIN sys_role sr ON sur.roleID = sr.roleID  
+            WHERE sr.roleName = '客户' ORDER BY su.userID LIMIT ${limit} OFFSET ${offset}`;
 
             // 执行当前页数据查询  
             dbConfig.sqlConnect(sql, [], (err, data) => {
                 if (err) {
+                    console.log(err);
                     console.log('连接出错了');
                     res.status(500).send({ error: '查询出错了' });
                 } else {
@@ -70,7 +86,7 @@ getCustomers = (req, res) => {
 // 获取指定用户信息
 getCustomerByID = (req, res) => {
     const { customerID } = req.query
-    let sql = `select * from customer where customerID=?`
+    let sql = `SELECT *  FROM sys_user WHERE userID=?`
     let sqlArr = [customerID]
     let callBack = (err, data) => {
         if (err) {
@@ -82,7 +98,6 @@ getCustomerByID = (req, res) => {
     }
     dbConfig.sqlConnect(sql, sqlArr, callBack)
 }
-
 
 // 新增用户信息
 insertCustomer = (req, res) => {
@@ -107,11 +122,12 @@ insertCustomer = (req, res) => {
 
 // 更新用户信息
 updateCustomer = (req, res) => {
-    let { customerID } = req.params
-    let { name, gender, age, contactNumber, province, city } = req.body;
+    console.log(req.params);
+    console.log(req.body);
+    let { name, gender, username, contactNumber, userID } = req.body;
 
-    let sql = `update customer set name=?, gender=?, age=?, contactNumber=?, province=?, city=? where customerID=?`
-    let sqlArr = [name, gender, age, contactNumber, province, city, customerID]
+    let sql = `update sys_user set name=?, gender=?, username=?, contactNumber=? where userID=?`
+    let sqlArr = [name, gender, username, contactNumber, userID]
 
     let callBack = (err, data) => {
         if (err) {
@@ -130,7 +146,7 @@ updateCustomer = (req, res) => {
 // 删除指定用户
 deleteCustomer = (req, res) => {
     let { customerID } = req.params;
-    let sql = `DELETE FROM customer WHERE customerID=?`
+    let sql = `DELETE FROM sys_user WHERE userID=?`
     let sqlArr = [customerID]
     let callBack = (err, data) => {
         if (err) {
