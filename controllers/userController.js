@@ -17,7 +17,7 @@ getUsers = (req, res) => {
         // 执行总数查询  
         dbConfig.sqlConnect(totalSql, [], (err, totalData) => {
             if (err) {
-                console.log('连接出错了');
+                console.log(err, '连接出错了');
                 res.status(500).send({ error: '查询出错了' });
                 return;
             }
@@ -29,12 +29,12 @@ getUsers = (req, res) => {
             FROM sys_user_role ur  
             JOIN sys_role r ON ur.roleID = r.roleID  
             JOIN sys_user u ON ur.userID = u.userID  
-            ORDER BY u.userID where u.username like '%${username}%' ORDER BY userID LIMIT ${limit} OFFSET ${offset}`;
+            where u.username like '%${username}%' ORDER BY u.userID LIMIT ${limit} OFFSET ${offset}`;
 
             // 执行当前页数据查询  
             dbConfig.sqlConnect(sql, [], (err, data) => {
                 if (err) {
-                    console.log('连接出错了');
+                    console.log(err, '连接出错了');
                     res.status(500).send({ error: '查询出错了' });
                 } else {
                     // 将总数和当前页数据一起返回  
@@ -43,6 +43,7 @@ getUsers = (req, res) => {
             });
         });
     } else {
+        console.log(2);
         // 创建一个用于计算总数的SQL查询  
         let totalSql = "SELECT COUNT(*) as total FROM sys_user";
 
@@ -85,15 +86,15 @@ login = (req, res) => {
     let sqlArr = [contactNumber, password]; // 防止SQL注入，使用参数化查询  
 
     let callBack = (err, result) => {
-        if (err) {
+        if (err)
             // 处理数据库连接错误或其他错误  
             return res.status(500).send({ error: '数据库连接失败' });
-        }
 
-        if (result.length === 0) {
+
+        if (result.length === 0)
             // 用户不存在或密码错误  
             return res.status(401).send({ error: '用户不存在或密码错误' });
-        }
+
         // 用户验证成功，生成JWT令牌  
         const token = jwt.sign({ contactNumber }, secretKey);
         // 返回令牌给客户端  
@@ -124,7 +125,8 @@ updatePwd = (req, res) => {
 
 // 插入用户
 insertUser = (req, res) => {
-    let { username, name, roleID, gender, contactNumber, avatarUrl, password } = req.body;
+    let { username, name, gender, contactNumber, avatarUrl, password } = req.body;
+    let roleID = 6
     // 准备SQL语句模板  
     let sql1 = `insert into sys_user (username, name, gender, contactNumber, avatarUrl, password) values (?, ?, ?, ?, ?, ?)`;
     let sql2 = `select userID from sys_user where contactNumber=?`
@@ -192,22 +194,13 @@ getMenus = (req, res) => {
 // 获取指定用户信息
 getUserByID = (req, res) => {
     const { userID } = req.query
-    let sql = `SELECT   
-    u.*,  
-    r.roleID,  
-    r.roleName  
-FROM   
-    sys_user u  
-JOIN   
-    sys_user_role ur ON u.userID = ur.userID  
-JOIN   
-    sys_role r ON ur.roleID = r.roleID  
-WHERE   
-    u.userID = ?;`
+    let sql = `SELECT u.*, r.roleID, r.roleName FROM sys_user u 
+    JOIN sys_user_role ur ON u.userID = ur.userID  
+    JOIN sys_role r ON ur.roleID = r.roleID  
+    WHERE u.userID = ?;`
     let sqlArr = [userID]
     let callBack = (err, data) => {
         if (err) {
-            console.log(err);
             console.log('连接出错了');
         } else {
             res.send({ data })

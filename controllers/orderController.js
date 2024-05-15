@@ -116,7 +116,7 @@ insertOrder = (req, res) => {
             const { orderID } = result[0]
             // const payStatus = 1
             let sql3 = `insert into pay_records ( orderID, payAmount, payStatus) values (${orderID}, ?, ?)`
-            let sqlArr2 = [payAmount, 1]
+            let sqlArr2 = [payAmount, 0]
             dbConfig.sqlConnect(sql3, sqlArr2, (err, result) => {
                 if (err) {
                     console.log(err);

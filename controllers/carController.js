@@ -74,103 +74,207 @@ getCarByID = (req, res) => {
 
 // 获取指定汽车的信息
 getCars = (req, res) => {
+    const { isCustomer } = req.query
+    console.log(req.query);
     const page = parseInt(req.query.page, 10) || 1; // 获取页码，默认为1  
     const limit = parseInt(req.query.limit, 10) || 5; // 获取每页数量，默认为5  
     // 计算偏移量，这里假设页码从1开始  
     const offset = (page - 1) * limit;
-    if (!req.query.keyword) {
-        // 创建一个用于计算总数的SQL查询  
-        let totalSql = "SELECT COUNT(*) as total FROM car";
+    if (isCustomer === 'false') {
+        if (!req.query.keyword) {
+            // 创建一个用于计算总数的SQL查询  
+            let totalSql = "SELECT COUNT(*) as total FROM car";
 
-        // 执行总数查询  
-        dbConfig.sqlConnect(totalSql, [], (err, totalData) => {
-            if (err) {
-                console.log('连接出错了');
-                res.status(500).send({ error: '查询出错了' });
-                return;
-            }
-
-            const total = totalData[0].total; // 获取总数  
-
-            // 创建一个用于获取当前页数据的SQL查询  
-            let sql = `SELECT * FROM car ORDER BY carID LIMIT ${limit} OFFSET ${offset}`;
-
-            // 执行当前页数据查询  
-            dbConfig.sqlConnect(sql, [], (err, data) => {
+            // 执行总数查询  
+            dbConfig.sqlConnect(totalSql, [], (err, totalData) => {
                 if (err) {
                     console.log('连接出错了');
                     res.status(500).send({ error: '查询出错了' });
-                } else {
-                    // 将总数和当前页数据一起返回  
-                    res.send({ total, data });
+                    return;
                 }
+
+                const total = totalData[0].total; // 获取总数  
+
+                // 创建一个用于获取当前页数据的SQL查询  
+                let sql = `SELECT * FROM car ORDER BY carID LIMIT ${limit} OFFSET ${offset}`;
+
+                // 执行当前页数据查询  
+                dbConfig.sqlConnect(sql, [], (err, data) => {
+                    if (err) {
+                        console.log('连接出错了');
+                        res.status(500).send({ error: '查询出错了' });
+                    } else {
+                        // 将总数和当前页数据一起返回  
+                        res.send({ total, data });
+                    }
+                });
             });
-        });
-    } else {
-        req.query.keyword ? req.query.keyword : {}
-        let { isRent, type, color, brand } = req.query.keyword;
-        isRent = Array.isArray(isRent) ? isRent : [];
-        type = Array.isArray(type) ? type : [];
-        color = Array.isArray(color) ? color : [];
-        brand = Array.isArray(brand) ? brand : [];
+        } else {
+            req.query.keyword ? req.query.keyword : {}
+            let { isRent, type, color, brand } = req.query.keyword;
+            isRent = Array.isArray(isRent) ? isRent : [];
+            type = Array.isArray(type) ? type : [];
+            color = Array.isArray(color) ? color : [];
+            brand = Array.isArray(brand) ? brand : [];
 
-        // 创建一个用于计算总数的SQL查询  
-        let totalSql = `SELECT COUNT(*) as total FROM car WHERE  
-        ${isRent.length > 0 ? `isRent in (${isRent})` : '1=1'}  
-        ${type.length > 0 ? `and type in (${type.map(item => `'${item}'`)})` : 'and 1=1'}  
-        ${color.length > 0 ? `and color in (${color.map(item => `'${item}'`)})` : 'and 1=1'} 
-        ${brand.length > 0 ? `and brand in (${brand.map(item => `'${item}'`)})` : 'and 1=1'}  
-    `;
-
-        // 执行总数查询  
-        dbConfig.sqlConnect(totalSql, [
-            isRent, // isRent数组的每个值作为一个参数  
-            type, // type数组  
-            color, // color数组  
-            brand   // brand数组  
-        ], (err, totalData) => {
-            if (err) {
-                console.log('连接出错了');
-                res.status(500).send({ error: '查询出错了' });
-                return;
-            }
-
-            const total = totalData[0].total; // 获取总数  
-
-            // 创建一个用于获取当前页数据的SQL查询  
-            let sql = `SELECT * FROM car WHERE  
+            // 创建一个用于计算总数的SQL查询  
+            let totalSql = `SELECT COUNT(*) as total FROM car WHERE  
             ${isRent.length > 0 ? `isRent in (${isRent})` : '1=1'}  
             ${type.length > 0 ? `and type in (${type.map(item => `'${item}'`)})` : 'and 1=1'}  
             ${color.length > 0 ? `and color in (${color.map(item => `'${item}'`)})` : 'and 1=1'} 
             ${brand.length > 0 ? `and brand in (${brand.map(item => `'${item}'`)})` : 'and 1=1'}  
-      ORDER BY carID LIMIT ${limit} OFFSET ${offset}`;
+        `;
 
-            // 执行当前页数据查询  
-            dbConfig.sqlConnect(sql, [
+            // 执行总数查询  
+            dbConfig.sqlConnect(totalSql, [
                 isRent, // isRent数组的每个值作为一个参数  
                 type, // type数组  
                 color, // color数组  
                 brand   // brand数组  
-            ], (err, data) => {
+            ], (err, totalData) => {
                 if (err) {
                     console.log('连接出错了');
                     res.status(500).send({ error: '查询出错了' });
-                } else {
-                    // 将总数和当前页数据一起返回  
-                    res.send({ total, data });
+                    return;
                 }
-            });
-        });
-    }
-};
 
+                const total = totalData[0].total; // 获取总数  
+
+                // 创建一个用于获取当前页数据的SQL查询  
+                let sql = `SELECT * FROM car WHERE  
+                ${isRent.length > 0 ? `isRent in (${isRent})` : '1=1'}  
+                ${type.length > 0 ? `and type in (${type.map(item => `'${item}'`)})` : 'and 1=1'}  
+                ${color.length > 0 ? `and color in (${color.map(item => `'${item}'`)})` : 'and 1=1'} 
+                ${brand.length > 0 ? `and brand in (${brand.map(item => `'${item}'`)})` : 'and 1=1'}  
+          ORDER BY carID LIMIT ${limit} OFFSET ${offset}`;
+
+                // 执行当前页数据查询  
+                dbConfig.sqlConnect(sql, [
+                    isRent, // isRent数组的每个值作为一个参数  
+                    type, // type数组  
+                    color, // color数组  
+                    brand   // brand数组  
+                ], (err, data) => {
+                    if (err) {
+                        console.log('连接出错了');
+                        res.status(500).send({ error: '查询出错了' });
+                    } else {
+                        // 将总数和当前页数据一起返回  
+                        res.send({ total, data });
+                    }
+                });
+            });
+        }
+    } else {
+        if (!req.query.keyword) {
+            // 创建一个用于计算总数的SQL查询  
+            let totalSql = `SELECT COUNT(*) as total FROM car WHERE NOT EXISTS (  
+                SELECT 1   
+                FROM car_uphold cu   
+                WHERE cu.carID = car.carID AND cu.upholdDate > CURDATE()  
+            ) `;
+            // 执行总数查询  
+            dbConfig.sqlConnect(totalSql, [], (err, totalData) => {
+                if (err) {
+                    console.log('连接出错了');
+                    res.status(500).send({ error: '查询出错了' });
+                    return;
+                }
+
+                const total = totalData[0].total; // 获取总数  
+
+                // 创建一个用于获取当前页数据的SQL查询  
+                let sql = `SELECT * FROM car WHERE NOT EXISTS (  
+                    SELECT 1   
+                    FROM car_uphold cu   
+                    WHERE cu.carID = car.carID AND cu.upholdDate > CURDATE()  
+                )   ORDER BY car.carID LIMIT ${limit} OFFSET ${offset}`;
+
+                // 执行当前页数据查询  
+                dbConfig.sqlConnect(sql, [], (err, data) => {
+                    if (err) {
+                        console.log('连接出错了');
+                        res.status(500).send({ error: '查询出错了' });
+                    } else {
+                        // 将总数和当前页数据一起返回  
+                        res.send({ total, data });
+                    }
+                });
+            });
+        } else {
+            req.query.keyword ? req.query.keyword : {}
+            let { isRent, type, color, brand } = req.query.keyword;
+            isRent = Array.isArray(isRent) ? isRent : [];
+            type = Array.isArray(type) ? type : [];
+            color = Array.isArray(color) ? color : [];
+            brand = Array.isArray(brand) ? brand : [];
+
+            // 创建一个用于计算总数的SQL查询  
+            let totalSql = `SELECT COUNT(*) as total FROM car WHERE NOT EXISTS (  
+                SELECT 1   
+                FROM car_uphold cu   
+                WHERE cu.carID = car.carID AND cu.upholdDate > CURDATE()  
+            )  and  
+            ${isRent.length > 0 ? `isRent in (${isRent})` : '1=1'}  
+            ${type.length > 0 ? `and type in (${type.map(item => `'${item}'`)})` : 'and 1=1'}  
+            ${color.length > 0 ? `and color in (${color.map(item => `'${item}'`)})` : 'and 1=1'} 
+            ${brand.length > 0 ? `and brand in (${brand.map(item => `'${item}'`)})` : 'and 1=1'}  
+        `;
+
+            // 执行总数查询  
+            dbConfig.sqlConnect(totalSql, [
+                isRent, // isRent数组的每个值作为一个参数  
+                type, // type数组  
+                color, // color数组  
+                brand   // brand数组  
+            ], (err, totalData) => {
+                if (err) {
+                    console.log('连接出错了');
+                    res.status(500).send({ error: '查询出错了' });
+                    return;
+                }
+
+                const total = totalData[0].total; // 获取总数  
+
+                // 创建一个用于获取当前页数据的SQL查询  
+                let sql = `SELECT * FROM car WHERE NOT EXISTS (  
+                    SELECT 1   
+                    FROM car_uphold cu   
+                    WHERE cu.carID = car.carID AND cu.upholdDate > CURDATE()  
+                )  and  
+                ${isRent.length > 0 ? `isRent in (${isRent})` : '1=1'}  
+                ${type.length > 0 ? `and type in (${type.map(item => `'${item}'`)})` : 'and 1=1'}  
+                ${color.length > 0 ? `and color in (${color.map(item => `'${item}'`)})` : 'and 1=1'} 
+                ${brand.length > 0 ? `and brand in (${brand.map(item => `'${item}'`)})` : 'and 1=1'}  
+          ORDER BY carID LIMIT ${limit} OFFSET ${offset}`;
+
+                // 执行当前页数据查询  
+                dbConfig.sqlConnect(sql, [
+                    isRent, // isRent数组的每个值作为一个参数  
+                    type, // type数组  
+                    color, // color数组  
+                    brand   // brand数组  
+                ], (err, data) => {
+                    if (err) {
+                        console.log('连接出错了');
+                        res.status(500).send({ error: '查询出错了' });
+                    } else {
+                        // 将总数和当前页数据一起返回  
+                        res.send({ total, data });
+                    }
+                });
+            });
+        }
+    }
+
+};
 
 // 新增汽车信息
 insertCar = (req, res) => {
     console.log(req.body);
-    let { plateNumber, brand, model, type, color, year, deposit, price, mileage, isRent, notes } = req.body
-    let sql = `insert into car (plateNumber, brand, model, type,color, year, deposit, price, mileage, isRent, notes) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    let sqlArr = [plateNumber, brand, model, type, deposit, color, year, price, mileage, isRent, notes]
+    let { plateNumber, brand, model, type, color, year, deposit, price, isRent, notes } = req.body
+    let sql = `insert into car (plateNumber, brand, model, type, color, year, deposit, price, isRent, notes) values (?, ?, ?, ?, ?, ?, ?,  ?, ?, ?)`
+    let sqlArr = [plateNumber, brand, model, type, color, year, deposit, price, isRent, notes]
 
     let callBack = (err, data) => {
         if (err) {
@@ -182,7 +286,6 @@ insertCar = (req, res) => {
             res.send({ message: '插入成功' });
         }
     }
-
     dbConfig.sqlConnect(sql, sqlArr, callBack)
 }
 
@@ -256,11 +359,3 @@ module.exports = {
     deleteCar,
     getTypeTotal
 }
-
-/**
-
-meiwenti 没问题啊
-{ page: '1', pagesize: '5', keyword: { color: [ '白色' ] } }
-
-wokankan 你返回值
-*/
