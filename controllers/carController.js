@@ -292,10 +292,10 @@ insertCar = (req, res) => {
 // 更新汽车信息
 updateCar = (req, res) => {
     let { carID } = req.params
-    let { plateNumber, brand, model, type, color, year, deposit, price, mileage, isRent, notes } = req.body;
+    let { plateNumber, brand, model, type, color, year, deposit, price, isRent, notes } = req.body;
 
-    let sql = `update car set plateNumber=?, brand=?, model=?, type=?, color=?, deposit=?, year=?,  price=?, mileage=?, isRent=?, notes=? where carID=?`
-    let sqlArr = [plateNumber, brand, model, type, color, deposit, year, price, mileage, isRent, notes, carID]
+    let sql = `update car set plateNumber=?, brand=?, model=?, type=?, color=?, deposit=?, year=?,  price=?,  isRent=?, notes=? where carID=?`
+    let sqlArr = [plateNumber, brand, model, type, color, deposit, year, price, isRent, notes, carID]
 
     let callBack = (err, data) => {
         if (err) {
